@@ -3,8 +3,6 @@ import os
 import sys
 import codecs
 import numpy as np
-#from poster.encode import multipart_encode, MultipartParam
-#from poster.streaminghttp import register_openers
 import requests
 import pyaudio
 import wave
@@ -19,12 +17,11 @@ import matplotlib.pyplot as plt
 import scipy.signal as sg
 import soundfile as sf
 import threading
-#from voice import Julius
-#import socket
 import transcribe
 import socket_server
 import socket
 import myio
+import leg
 
 HOST = '127.0.0.1'   # IPアドレス
 PORT = 10500         # Juliusとの通信用ポート番号
