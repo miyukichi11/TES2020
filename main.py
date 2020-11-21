@@ -21,7 +21,7 @@ import transcribe
 import socket_server
 import socket
 import myio
-import leg
+#import leg
 
 HOST = '127.0.0.1'   # IPアドレス
 PORT = 10500         # Juliusとの通信用ポート番号
