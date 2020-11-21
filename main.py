@@ -17,7 +17,6 @@ import matplotlib.pyplot as plt
 import scipy.signal as sg
 import soundfile as sf
 import threading
-import transcribe
 import socket_server
 import socket
 import myio
