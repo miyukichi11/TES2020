@@ -54,6 +54,26 @@ def initialize_katahaba():
 
 #  肩チェック関数
 def check_katahaba():
+    while True:
+        for i in range(4):
+            current[i].voltage()
+            if current[i].volt > 2.1 :
+                leg[i].move(-1)
+            
+            else:
+                leg[i].move(0)
+                leg[i].katahaba = leg[i].position
+        if leg[i].position > servo_max or leg[i].position < servo_min:
+            break
+
+        if leg[0].katahaba and leg[1].katahaba and leg[2].katahaba and leg[3].katahaba :
+            print ('check done')
+            break
+
+
+# ずっとくっつく関数
+def zutto_katahaba():
+    while True:
         for i in range(4):
             current[i].voltage()
             if current[i].volt > 2.1 :
@@ -63,79 +83,60 @@ def check_katahaba():
                 leg[i].move(0)
                 leg[i].katahaba = leg[i].position
 
-            if leg[i].position > servo_max or leg[i].position < servo_min:
-                break
-
-        if leg[0].katahaba and leg[1].katahaba and leg[2].katahaba and leg[3].katahaba :
-            print ('check done')
-            break
-
-# ずっとくっつく関数
-def zutto_katahaba():
-    for i in range(4):
-        current[i].voltage()
-        if current[i].volt > 2.1 :
-            leg[i].move(-1)
-            
-        else:
-            leg[i].move(0)
-            leg[i].katahaba = leg[i].position
-
         if leg[i].position > servo_max or leg[i].position < servo_min:
-            break
-            
+            break    
 
 # ぎゅっとする関数
 def gyutto_katahaba():
-    for i in range(4):
-        current[i].voltage()
-        if current[i].volt > 1.9 :
-            leg[i].move(-1)
+    while True:
+        for i in range(4):
+            current[i].voltage()
+            if current[i].volt > 1.9 :
+                leg[i].move(-1)
             
-        elif current[i].volt < 1.7 :
-            leg[i].move(1)
-
+            elif current[i].volt < 1.7 :
+                leg[i].move(1)
         if leg[i].position > servo_max or leg[i].position < servo_min:
             break
 
 # むぎゅむぎゅする関数
 def mugyumugyu():
-    count=0
-    while count<20:
-        zutto_katahaba()
-        count++
-    count=0
-    while count<20:
-        gyutto_katahaba()
-        count++
-    count=0
+    while True:
+        count=0
+        while count<20:
+            zutto_katahaba()
+            count+=1
+        count=0
+        while count<20:
+            gyutto_katahaba()
+            count+=1
+        count=0
 
 #======================================
 #  メインループ
 #======================================
 while True:
     val = input('enter command: ')
-    if val == 0:
+    if val == '0':
         print('イニシャル肩幅')
-        while True:
-            initialize_katahaba()
+        initialize_katahaba()
 
-    if val == 1:
+    if val == '1':
         print('肩幅チェック')
-        while True:
-            check_katahaba()
+        check_katahaba()
 
-    if val == 2:
+    if val == '2':
         print('ずっと肩幅')
-        while True:
-            zutto_katahaba()
-
-    if val == 3:
+        zutto_katahaba()
+    
+    if val == '3':
         print(' ぎゅっと肩幅')
-        while True:
-            gyutto_katahaba()
+        gyutto_katahaba()
 
-    if val == 4:
+    if val == '4':
         print('ムギュムギュ')
-        while True:
-            mugyumugyu()
+        mugyumugyu()
+    
+    else:
+        print('1-4')
+
