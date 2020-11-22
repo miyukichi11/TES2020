@@ -38,10 +38,14 @@ def conn_client(client_socket, address):
         while True:
             # クライアントからデータ受信
             rcv_data = client_socket.recv(DATESIZE)
+            print("Receive from client : %s" % rcv_data.decode("utf-8"))
+            print("クライアントからデータ受信") 
             if rcv_data:
                 mp3f = transcribe_file(rcv_data)
                 a_utf8 = mp3f.encode("utf-8")
                 client_socket.send(a_utf8)
+                print("Send to client : %s" % mp3f)
+                print("データをクライアントへ送信")
                 # データ受信したデータをそのままクライアントへ送信
                 #client_socket.send(rcv_data)
                 #print('[{0}] recv date : {1}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), rcv_data.decode('utf-8')) )
