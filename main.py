@@ -56,6 +56,7 @@ def RecogAudio(wav, RATE):
     while True:
         data = stream.read(CHUNK)
         x = np.frombuffer(data, dtype="int16") / 32768.0
+        print ("話しかけていいよ")
 
         if (x.max() > threshold):
             #recstatus = 1
@@ -63,6 +64,7 @@ def RecogAudio(wav, RATE):
             #print(cnt, filename)
             
             print ("recording...")
+            print ("録音開始...")
             frames = []
             frames.append(data)
             for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
@@ -91,6 +93,7 @@ def RecogAudio(wav, RATE):
             waveFile.close()
 
             print("Saved.")
+            print ("録音終了...")
 
 #            cnt += 1
 #
@@ -112,6 +115,7 @@ def RecogAudio(wav, RATE):
     stream.stop_stream()
     stream.close()
     audio.terminate()
+    print("Saved as %s") % (wav)
  
 #    waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
 #    waveFile.setnchannels(CHANNELS)
@@ -137,8 +141,12 @@ def send_recv(input_data):
         print('[{0}] input data : {1}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), input_data) )
         # 入力データをサーバーへ送信
         sock.send(input_data.encode('utf-8'))
+        print("Send to server : %s" % input_data)
+        print("入力データをサーバーへ送信")
         # サーバーからのデータを受信
-        rcv_data = sock.recv(DATESIZE)            
+        rcv_data = sock.recv(DATESIZE)
+        print("Receive from server : %s" % rcv_data.decode("utf-8"))
+        print("サーバーからのデータを受信")
         #rcv_data = rcv_data.decode('utf-8')
         #print('[{0}] recv data : {1}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), rcv_data) )
         return rcv_data
