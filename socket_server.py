@@ -149,7 +149,7 @@ def RecogWord(recog_text, speech_file):
         max_k = max(scor, key=scor.get)
         print(max_k)
         
-        mp3f = "sound/%s" % (max_k)
+        mp3f = "sound/%s" % (str(max_k))
         
     return mp3f
 
