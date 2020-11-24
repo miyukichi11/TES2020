@@ -29,6 +29,7 @@ import cv2
 
 from tflite_runtime.interpreter import Interpreter
 import tflite_runtime.interpreter as tflite
+import main_modal as modal
 
 EDGETPU_SHARED_LIB = 'libedgetpu.so.1'
 
@@ -79,8 +80,88 @@ def detect_objects(interpreter, image, threshold):
           'class_id': classes[i],
           'score': scores[i]
       }
+      print (classes[i])
+      if classes[i]==16:
+        mp3 = "sound/joy/1.mp3"
+        modal.RunAudio(mp3)
+        time.sleep(2)
       results.append(result)
   return results
+
+def cv():
+  parser = argparse.ArgumentParser(
+      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+  parser.add_argument(
+      '--model', help='File path of .tflite file.', required=True)
+  parser.add_argument(
+      '--labels', help='File path of labels file.', required=True)
+  parser.add_argument(
+      '--threshold',
+      help='Score threshold for detected objects.',
+      required=False,
+      type=float,
+      default=0.4)
+  args = parser.parse_args()
+
+  labels = load_labels(args.labels)
+  model_file, *device = args.model.split('@')
+  try:
+    interpreter = Interpreter(model_file, experimental_delegates=[
+                                        tflite.load_delegate(EDGETPU_SHARED_LIB,
+                                        {'device': device[0]} if device else {})
+                                        ])
+  except (ValueError, OSError):
+    interpreter = Interpreter(model_file)
+  interpreter.allocate_tensors()
+  _, input_height, input_width, _ = interpreter.get_input_details()[0]['shape']
+
+
+  cap = cv2.VideoCapture(0)
+  while True:
+    ret, frame = cap.read()
+    (CAMERA_WIDTH, CAMERA_HEIGHT) = (frame.shape[1], frame.shape[0])
+    image = cv2.resize(frame, 
+                       dsize=(input_width, input_height), 
+                       interpolation=cv2.INTER_NEAREST)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+    start_time = time.monotonic()
+    results = detect_objects(interpreter, image, args.threshold)
+    elapsed_ms = (time.monotonic() - start_time) * 1000
+    for obj in results:
+      ymin, xmin, ymax, xmax = obj['bounding_box']
+      xmin = int(xmin * CAMERA_WIDTH)
+      xmax = int(xmax * CAMERA_WIDTH)
+      ymin = int(ymin * CAMERA_HEIGHT)
+      ymax = int(ymax * CAMERA_HEIGHT)
+
+      cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (255, 0, 0), 2)
+      text = '{} {:.2f}'.format(labels[obj['class_id']], obj['score'])
+      (text_width, text_height), baseline = cv2.getTextSize(text,
+                                              cv2.FONT_HERSHEY_SIMPLEX,
+                                              0.5, 1)
+      cv2.rectangle(frame,
+                    (xmin, ymin),
+                    (xmin + text_width, ymin - text_height - baseline),
+                    (255, 0, 0),
+                    thickness=cv2.FILLED)
+      cv2.putText(frame, 
+                  text,
+                  (xmin, ymin - baseline), 
+                  cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+
+    cv2.putText(frame, 
+                '{:.1f}ms'.format(elapsed_ms),
+                (10, 30), 
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+ 
+    cv2.imshow('frame', frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+      break
+
+  cap.release()
+  cv2.destroyAllWindows()
+  return
 
 def main():
   parser = argparse.ArgumentParser(
