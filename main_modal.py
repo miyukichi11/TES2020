@@ -20,12 +20,24 @@ import threading
 import socket_server
 import socket
 import myio
-from queue import Queue
+#from queue import Queue
 #import leg
 import detect_opencv
 
 from tflite_runtime.interpreter import Interpreter
 import tflite_runtime.interpreter as tflite
+
+#########################
+    #MUGYUの感情レベル
+#########################
+#global MUGYU_level
+
+#########################
+    #flag
+#########################
+#global conf_flag
+#conf_flag = 0
+
 
 HOST = '127.0.0.1'   # IPアドレス
 PORT = 10500         # Juliusとの通信用ポート番号
@@ -37,20 +49,27 @@ DATESIZE = 1024     # 受信データバイト数
     #wavファイル録音
 #########################
 def RecogAudio(wav, RATE):
+    
+#########################
+    #flag
+#########################
+#    global conf_flag
+#    conf_flag = 0
+
     print ("RecogAudio")
     
 #---マイクのインデックス確認後⇒コメントアウト----------------------
     #オーディオデバイスの情報を取得、マイクのインデックス番号を入手する
-    PiAudio = pyaudio.PyAudio()
-    for x in range(0, PiAudio.get_device_count()):
-        print ("オーディオデバイスの情報を取得、マイクのインデックス番号を入手する")
-        print(PiAudio.get_device_info_by_index(x))
+#    PiAudio = pyaudio.PyAudio()
+#    for x in range(0, PiAudio.get_device_count()):
+#        print ("オーディオデバイスの情報を取得、マイクのインデックス番号を入手する")
+#        print(PiAudio.get_device_info_by_index(x))
 #-------------------------
         
     #マイクのインデックス番号を定義する
-    iDeviceIndex = 0
+    iDeviceIndex = 1
 
-    threshold = 0.4
+    threshold = 0.6
 
     RECORD_SECONDS = 3
     WAVE_OUTPUT_FILENAME = wav
@@ -59,44 +78,73 @@ def RecogAudio(wav, RATE):
     CHANNELS = 1
     #RATE = 16000
     CHUNK = 1024
-    audio = pyaudio.PyAudio()
+#    audio = pyaudio.PyAudio()
  
-    stream = audio.open(format=FORMAT, channels=CHANNELS,
-        rate=RATE, input=True,
-        input_device_index = iDeviceIndex,
-        frames_per_buffer=CHUNK)
+#    stream = audio.open(format=FORMAT, channels=CHANNELS,
+#        rate=RATE, input=True,
+#        input_device_index = iDeviceIndex,
+#        frames_per_buffer=CHUNK)
     
     while True:
-        data = stream.read(CHUNK)
-        x = np.frombuffer(data, dtype="int16") / 32768.0
-        print ("話しかけていいよ")
-
-        if (x.max() > threshold):
-            
-            print ("recording...")
-            print ("録音開始...")
-            frames = []
-            frames.append(data)
-            for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-                data = stream.read(CHUNK)
-                frames.append(data)
+        audio = pyaudio.PyAudio()
+        stream = audio.open(format=FORMAT, channels=CHANNELS,
+            rate=RATE, input=True,
+            input_device_index = iDeviceIndex,
+            frames_per_buffer=CHUNK)
+        
+        while True:
+    #        if conf_flag == 1:
+    #            print ("audio sleep")
+    #            time.sleep(10)
+            data = stream.read(CHUNK)
+            x = np.frombuffer(data, dtype="int16") / 32768.0
+            print ("話しかけていいよ")
+    
+            if (x.max() > threshold):
                 
-            waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-            waveFile.setnchannels(CHANNELS)
-            waveFile.setsampwidth(audio.get_sample_size(FORMAT))
-            waveFile.setframerate(RATE)
-            waveFile.writeframes(b''.join(frames))
-            waveFile.close()
-
-            print("Saved.")
-            print ("録音終了...")
-
-            break
- 
-    stream.stop_stream()
-    stream.close()
-    audio.terminate()
-    print("Saved as %s" % wav)
+    #            conf_flag = 1
+                print ("recording...")
+                print ("録音開始...")
+                frames = []
+                frames.append(data)
+                for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
+                    data = stream.read(CHUNK)
+                    frames.append(data)
+                    
+                waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+                waveFile.setnchannels(CHANNELS)
+                waveFile.setsampwidth(audio.get_sample_size(FORMAT))
+                waveFile.setframerate(RATE)
+                waveFile.writeframes(b''.join(frames))
+                waveFile.close()
+    
+                print("Saved.")
+                print ("録音終了...")
+    
+                break
+     
+        stream.stop_stream()
+        stream.close()
+        audio.terminate()
+        print("Saved as %s" % wav)
+        
+    #-------------------
+        #サーバー送受信
+    #-------------------
+        mp3f = send_recv(wav)
+        mp3f_str = mp3f.decode("utf-8")
+        print ( mp3f )
+    #-------------------       
+        em_start = 0
+            
+    #-------------------
+        #em_start level
+        c = random.randint(1,3)
+    #-------------------
+        mp3 = "%s/%d.mp3" % (mp3f_str, c)
+        RunAudio(mp3)
+        time.sleep(1)
+    #    conf_flag = 0
 
 
 #########################
@@ -107,7 +155,7 @@ def RunAudio(mp3):
     pygame.mixer.init(frequency = 44100)
     pygame.mixer.music.load(mp3)
     pygame.mixer.music.play(1)
-    #time.sleep(100)
+    time.sleep(2)
     #pygame.mixer.music.stop()
 
 
@@ -141,7 +189,7 @@ def cv():
     pytfile = "detect_opencv.py"
     modelPATH = "object_detection/models/ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite"
     labelsPATH = "object_detection/models/coco_labels.txt"
-    os.system("%s --model %s --labels %s" % (pytfile, modelPATH, labelsPATH))
+    os.system("python %s --model %s --labels %s" % (pytfile, modelPATH, labelsPATH))
 
     
 def main():    
@@ -157,45 +205,16 @@ def main():
         #print ("thread_01")
         thread_1 = threading.Thread(target=cv)
         print ("thread_1")
-        #thread_1.start()
+        thread_1.start()
         print ("thread_1 start")
         thread_2 = threading.Thread(target=RecogAudio, args=([em_wav, 11025]))
         print ("thread_2")
         thread_2.start()
         print ("thread_2 start")
-        #thread_1.join()
+        thread_1.join()
         thread_2.join()
-        
-        #thread_1.start()
-        #print ("thread_11 start")
-        #thread_1.join()
-        
-        #Thread(target = RecogAudio).start(ju_wav, 16000)
-        #Thread(target = RecogAudio).start(em_wav, 11025)
-        #RecogAudio(wav)
-        #upsampling(wav)
-        #Recogjulius(wav)
-        #iAudio = pyaudio.PyAudio()
-        #for x in range(0, iAudio.get_device_count()): 
-        #    print(iAudio.get_device_info_by_index(x))
-        #wav = "2.wav"
-        
-#        recog_text = transcribe.transcribe_file(em_wav)
-#############################################
-        mp3f = send_recv(em_wav)
-        mp3f_str = mp3f.decode("utf-8")
-        print ( mp3f )
-################################################        
-        em_start = 0
-        
-#-------------------
-        #em_start level
-        c = random.randint(1,3)
-#-------------------
-        mp3 = "%s/%d.mp3" % (mp3f_str, c)
-        RunAudio(mp3)
             
-        time.sleep(2)
+        time.sleep(1)
 
 if __name__ == '__main__':
     main()
