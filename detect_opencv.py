@@ -32,6 +32,8 @@ import tflite_runtime.interpreter as tflite
 import main_modal as modal
 
 EDGETPU_SHARED_LIB = 'libedgetpu.so.1'
+conf_flag = 0
+
 
 def load_labels(path):
   """Loads the labels file. Supports files with or without index numbers."""
@@ -62,6 +64,7 @@ def get_output_tensor(interpreter, index):
 
 
 def detect_objects(interpreter, image, threshold):
+  global conf_flag
   """Returns a list of detection results, each a dictionary of object info."""
   set_input_tensor(interpreter, image)
   interpreter.invoke()
@@ -82,13 +85,18 @@ def detect_objects(interpreter, image, threshold):
       }
       print (classes[i])
       if classes[i]==16:
+        conf_flag = 1
+#        MUGYU_level = MUGYU_level + 1
         mp3 = "sound/joy/1.mp3"
         modal.RunAudio(mp3)
-        time.sleep(2)
+        #time.sleep(1)
+      else:
+        conf_flag = 0
       results.append(result)
   return results
 
 def cv():
+  global conf_flag
   parser = argparse.ArgumentParser(
       formatter_class=argparse.ArgumentDefaultsHelpFormatter)
   parser.add_argument(
@@ -117,7 +125,12 @@ def cv():
 
 
   cap = cv2.VideoCapture(0)
+
   while True:
+    if conf_flag == 1:
+        print ("cv sleep")
+        time.sleep(3)
+        
     ret, frame = cap.read()
     (CAMERA_WIDTH, CAMERA_HEIGHT) = (frame.shape[1], frame.shape[0])
     image = cv2.resize(frame, 
@@ -127,6 +140,7 @@ def cv():
 
     start_time = time.monotonic()
     results = detect_objects(interpreter, image, args.threshold)
+
     elapsed_ms = (time.monotonic() - start_time) * 1000
     for obj in results:
       ymin, xmin, ymax, xmax = obj['bounding_box']
@@ -202,7 +216,9 @@ def main():
 
     start_time = time.monotonic()
     results = detect_objects(interpreter, image, args.threshold)
+#---------------------
     elapsed_ms = (time.monotonic() - start_time) * 1000
+#---------------------
     for obj in results:
       ymin, xmin, ymax, xmax = obj['bounding_box']
       xmin = int(xmin * CAMERA_WIDTH)
