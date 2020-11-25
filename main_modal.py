@@ -20,6 +20,7 @@ import threading
 import socket_server
 import socket
 import myio
+from queue import Queue
 #import leg
 import detect_opencv
 
@@ -32,15 +33,19 @@ DATESIZE = 1024     # 受信データバイト数
 
 def RecogAudio(wav, RATE):
     print ("RecogAudio")
-    #iAudio = pyaudio.PyAudio()
-    #for x in range(0, iAudio.get_device_count()): 
-    #    print(iAudio.get_device_info_by_index(x))
-
+#########################
+#オーディオデバイスの情報を取得、マイクのインデックス番号を入手する
+    PiAudio = pyaudio.PyAudio()
+    for x in range(0, PiAudio.get_device_count()):
+        print ("オーディオデバイスの情報を取得、マイクのインデックス番号を入手する")
+        print(PiAudio.get_device_info_by_index(x))
+#マイクのインデックス番号を定義する
+    iDeviceIndex = 1
+#########################
     threshold = 0.4
 
     RECORD_SECONDS = 3
     WAVE_OUTPUT_FILENAME = wav
-    iDeviceIndex = 0
  
     FORMAT = pyaudio.paInt16
     CHANNELS = 1
@@ -171,17 +176,18 @@ def main():
         #print ("thread_01")
         thread_1 = threading.Thread(target=cv)
         print ("thread_1")
-        thread_1.start()
+        #thread_1.start()
         print ("thread_1 start")
         thread_2 = threading.Thread(target=RecogAudio, args=([em_wav, 11025]))
         print ("thread_2")
         thread_2.start()
         print ("thread_2 start")
+        #thread_1.join()
         thread_2.join()
         
         #thread_1.start()
         #print ("thread_11 start")
-        thread_1.join()
+        #thread_1.join()
         
         #Thread(target = RecogAudio).start(ju_wav, 16000)
         #Thread(target = RecogAudio).start(em_wav, 11025)
