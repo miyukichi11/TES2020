@@ -31,17 +31,25 @@ HOST = '127.0.0.1'   # IPアドレス
 PORT = 10500         # Juliusとの通信用ポート番号
 DATESIZE = 1024     # 受信データバイト数
 
+
+
+#########################
+    #wavファイル録音
+#########################
 def RecogAudio(wav, RATE):
     print ("RecogAudio")
-#########################
-#オーディオデバイスの情報を取得、マイクのインデックス番号を入手する
+    
+#---マイクのインデックス確認後⇒コメントアウト----------------------
+    #オーディオデバイスの情報を取得、マイクのインデックス番号を入手する
     PiAudio = pyaudio.PyAudio()
     for x in range(0, PiAudio.get_device_count()):
         print ("オーディオデバイスの情報を取得、マイクのインデックス番号を入手する")
         print(PiAudio.get_device_info_by_index(x))
-#マイクのインデックス番号を定義する
-    iDeviceIndex = 1
-#########################
+#-------------------------
+        
+    #マイクのインデックス番号を定義する
+    iDeviceIndex = 0
+
     threshold = 0.4
 
     RECORD_SECONDS = 3
@@ -58,19 +66,12 @@ def RecogAudio(wav, RATE):
         input_device_index = iDeviceIndex,
         frames_per_buffer=CHUNK)
     
-#    cnt = 0
-#    recstatus = 0
-#    start_at = time.time()
-    
     while True:
         data = stream.read(CHUNK)
         x = np.frombuffer(data, dtype="int16") / 32768.0
         print ("話しかけていいよ")
 
         if (x.max() > threshold):
-            #recstatus = 1
-            #filename = datetime.today().strftime("word/%Y%m%d%H%M%S") + ".wav"
-            #print(cnt, filename)
             
             print ("recording...")
             print ("録音開始...")
@@ -79,21 +80,7 @@ def RecogAudio(wav, RATE):
             for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
                 data = stream.read(CHUNK)
                 frames.append(data)
-
-#        elif (recstatus == 1) and (x.max() > threshold):
-#            start_at = time.time()
-#            print("Update rec time")
-#            for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-#                data = stream.read(CHUNK)
-#                frames.append(data)
-#
-#        elif (recstatus == 1) and (x.max() <= threshold):
-#            if (time.time() - start_at) >1:
-#                recstatus = 0
-#                print("finished recording")
-#                break
-
-    #waveFile = wave.open(filename, 'wb')
+                
             waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
             waveFile.setnchannels(CHANNELS)
             waveFile.setsampwidth(audio.get_sample_size(FORMAT))
@@ -104,35 +91,17 @@ def RecogAudio(wav, RATE):
             print("Saved.")
             print ("録音終了...")
 
-#            cnt += 1
-#
-#        if cnt > 5:
             break
- 
-#    #--------------Start---------------
-# 
-#    print ("recording...")
-#    frames = []
-#    for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-#        data = stream.read(CHUNK)
-#        frames.append(data)
-# 
-#    print ("finished recording")
-# 
-#    #--------------Finish---------------
  
     stream.stop_stream()
     stream.close()
     audio.terminate()
     print("Saved as %s" % wav)
- 
-#    waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-#    waveFile.setnchannels(CHANNELS)
-#    waveFile.setsampwidth(audio.get_sample_size(FORMAT))
-#    waveFile.setframerate(RATE)
-#    waveFile.writeframes(b''.join(frames))
-#    waveFile.close()
 
+
+#########################
+    #wavファイル再生
+#########################
 def RunAudio(mp3):
     print (mp3)
     pygame.mixer.init(frequency = 44100)
@@ -141,8 +110,11 @@ def RunAudio(mp3):
     #time.sleep(100)
     #pygame.mixer.music.stop()
 
-def send_recv(input_data):
-        
+
+#########################
+    #サーバー送受信
+#########################
+def send_recv(input_data):      
     # sockインスタンスを生成
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         # ソケットをオープンにして、サーバーに接続
@@ -160,8 +132,17 @@ def send_recv(input_data):
         #print('[{0}] recv data : {1}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), rcv_data) )
         return rcv_data
 
+
+#########################
+    #画処理
+#########################
 def cv():
-    os.system("python3 detect_opencv.py --model object_detection/models/ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite --labels object_detection/models/coco_labels.txt")
+    #detect_opencv.pyの呼び出し
+    pytfile = "detect_opencv.py"
+    modelPATH = "object_detection/models/ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite"
+    labelsPATH = "object_detection/models/coco_labels.txt"
+    os.system("%s --model %s --labels %s" % (pytfile, modelPATH, labelsPATH))
+
     
 def main():    
     ju_wav = "word/ju_sample.wav"
