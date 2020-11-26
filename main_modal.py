@@ -17,11 +17,15 @@ import matplotlib.pyplot as plt
 import scipy.signal as sg
 import soundfile as sf
 import threading
+from multiprocessing import Value, Array, Process
+import subprocess
 import socket_server
 import socket
 import myio
 #from queue import Queue
 #import leg
+import RPi.GPIO as GPIO
+import touch_sensor
 import detect_opencv
 
 from tflite_runtime.interpreter import Interpreter
@@ -61,9 +65,9 @@ def RecogAudio(wav, RATE):
 #---マイクのインデックス確認後⇒コメントアウト----------------------
     #オーディオデバイスの情報を取得、マイクのインデックス番号を入手する
 #    PiAudio = pyaudio.PyAudio()
-#    for x in range(0, PiAudio.get_device_count()):
-#        print ("オーディオデバイスの情報を取得、マイクのインデックス番号を入手する")
-#        print(PiAudio.get_device_info_by_index(x))
+#   for x in range(0, PiAudio.get_device_count()):
+#       print ("オーディオデバイスの情報を取得、マイクのインデックス番号を入手する")
+#       print(PiAudio.get_device_info_by_index(x))
 #-------------------------
         
     #マイクのインデックス番号を定義する
@@ -191,7 +195,103 @@ def cv():
     labelsPATH = "object_detection/models/coco_labels.txt"
     os.system("python %s --model %s --labels %s" % (pytfile, modelPATH, labelsPATH))
 
+#########################
+#タッチセンサ読み込み
+#########################
+touch_back = 5
+touch_neck = 6
+touch_head = 13
+
+power_back = 16
+power_neck = 20
+power_head = 21
+
+gnd_back = 19
+gnd_neck =26
+#gnd_head =  もともとGNDのピン
+
+
+touch_sw_back=0
+touch_sw_neck=0
+touch_sw_head=0
+
+def switch_callback_back(gpio_pin):
+    print('touch! 背中')
+    print('output')
+    mp3 = "sound/calm/1.mp3" 
+    subprocess.call("mpg321 sound/calm/1.mp3", shell=True)
+    time.sleep(1)
     
+
+def switch_callback_neck(gpio_pin):
+    print('touch! 首')
+    touch_sw_neck=1
+
+def switch_callback_head(gpio_pin):
+    print('touch! 頭')
+    touch_sw_head=1
+
+def touch():
+    #GPIO番号指定の準備
+    GPIO.setmode(GPIO.BCM)
+
+    # スイッチピンを入力、プルアップに設定
+    GPIO.setup(touch_back, GPIO.IN)
+    GPIO.setup(touch_neck, GPIO.IN)
+    GPIO.setup(touch_head, GPIO.IN)
+
+    # 出力pin設定
+    GPIO.setup(power_back, GPIO.OUT)
+    GPIO.setup(power_neck, GPIO.OUT)
+    GPIO.setup(power_head, GPIO.OUT)
+    GPIO.setup(gnd_back, GPIO.OUT)
+    GPIO.setup(gnd_neck, GPIO.OUT)
+
+    #　power3.3V出力
+    GPIO.output(power_back,GPIO.HIGH)
+    GPIO.output(power_neck,GPIO.HIGH)
+    GPIO.output(power_head,GPIO.HIGH)
+
+    #　gnd 0V出力
+    GPIO.output(gnd_back,GPIO.LOW)
+    GPIO.output(gnd_neck,GPIO.LOW)
+    #GPIO.output(gnd_head,GPIO.LOW)
+
+# スイッチの状態を取得
+    GPIO.add_event_detect(touch_back, GPIO.RISING,bouncetime=100)
+    GPIO.add_event_callback(touch_back, switch_callback_back) 
+
+    GPIO.add_event_detect(touch_neck, GPIO.RISING,bouncetime=100)
+    GPIO.add_event_callback(touch_neck, switch_callback_neck) 
+    
+    GPIO.add_event_detect(touch_head, GPIO.RISING,bouncetime=100)
+    GPIO.add_event_callback(touch_head, switch_callback_head) 
+
+    try:
+        while True:
+            time.sleep(1)
+
+
+    except KeyboardInterrupt:
+        print("break")
+
+
+#########################
+# アウトプット
+#########################
+def output():
+
+    if touch_sw_back == 1:
+        print('output')
+        mp3 = "calm/1.mp3" 
+        RunAudio(mp3)
+        time.sleep(1)
+        touch_sw_back=0
+
+
+#########################
+# main
+#########################
 def main():    
     ju_wav = "word/ju_sample.wav"
     em_wav = "word/em_sample.wav"
@@ -203,17 +303,35 @@ def main():
         #print ("thread_0")
         #ju_recog = ju.run()
         #print ("thread_01")
+        
         thread_1 = threading.Thread(target=cv)
+        #thread_1 = Process(target=cv)
         print ("thread_1")
         thread_1.start()
         print ("thread_1 start")
+        
         thread_2 = threading.Thread(target=RecogAudio, args=([em_wav, 11025]))
+        #thread_2 = Process(target=RecogAudio, args=([em_wav, 11025]))
         print ("thread_2")
         thread_2.start()
         print ("thread_2 start")
+        
+        thread_3 = threading.Thread(target=touch)
+        #thread_3 = Process(target=touch)
+        print ("thread_3")
+        thread_3.start()
+        print ("thread_3 start")
+        
+        thread_4 = threading.Thread(target=output)
+        #thread_4 = Process(target=output)
+        print ("thread_4")
+        thread_4.start()
+
         thread_1.join()
         thread_2.join()
-            
+        thread_3.join()
+        thread_4.join()
+
         time.sleep(1)
 
 if __name__ == '__main__':
