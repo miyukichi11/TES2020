@@ -52,11 +52,23 @@ class servo:
 # サーボモータを指定変位分動かす（+で外側に開く）
 #======================================
     def move(self, change):
-        if self.pin==0 or self.pin==3:
-            self.position+=change
-            pwm.set_pwm(self.pin,0,self.position)
-        else:
+        if self.pin==1 or self.pin==2:
             self.position-=change
             pwm.set_pwm(self.pin,0,self.position)
+        else:
+            self.position+=change
+            pwm.set_pwm(self.pin,0,self.position)
 
 
+#======================================
+# サーボモータを指定位置まで動かす
+#======================================
+    def goto(self, position, time):
+        count=0
+        self.nowp=self.position
+        while count < abs(self.nowp-position):
+            if self.nowp < position:
+                self.move(time)
+            if self.nowp > position:
+                self.move(-time)
+            count+=1

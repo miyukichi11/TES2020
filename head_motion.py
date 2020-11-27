@@ -34,24 +34,49 @@ head[0]=servo(5)
 # 関数
 #======================================
 
-# 左をむく関数
-
 def motion(sw):
-    if sw==1:
-        count=0
-        while count<50:
-            neck[0].move(1)
-            count+=1
-        count=0
-        while count<100:
-            head[0].move(-1)
-            count+=1
-        count=0
+    neck[0].nowp=neck[0].position
+    head[0].nowp=head[0].position
+
+    if sw==0:
+        neck[0].goto(servo_centor,1)
+        print(neck[0].position)
+        head[0].goto(servo_centor,1)
+        print(head[0].position)
+        time.sleep(0.1)
         sw=0
 
+    #左を向く    
+    if sw==1:
+        neck[0].goto(600,1)
+        print(neck[0].position)
+        head[0].goto(servo_min,1)
+        print(head[0].position)
+        time.sleep(0.1)
+        sw=0
+
+    #右を向く
     if sw==2:
+        neck[0].goto(200,1)
+        print(neck[0].position)
+        head[0].goto(servo_min,1)
+        print(head[0].position)
+        time.sleep(0.1)
+        sw=0
+
+    #うなづき
+    if sw==3:
+        head[0].goto(400,1)
+        head[0].goto(250,1)
+        head[0].goto(400,1)
+        head[0].goto(250,1)
+        time.sleep(0.1)
+        sw=0
+
+    #いやいや
+    if sw==4:
         for j in range(5):
-            r=int(random.uniform(50,100))
+            r=int(random.uniform(80,100))
             for i in range(r):
                 neck[0].move(-1)
                 i+=1
@@ -63,8 +88,10 @@ def motion(sw):
             j+=1
 
 def main():
+    motion(3)
+    motion(2)
     motion(1)
-
+    motion(0)
 
 if __name__ == '__main__':
     main()
