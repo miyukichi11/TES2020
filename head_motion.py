@@ -50,7 +50,7 @@ def motion(sw):
     if sw==1:
         neck[0].goto(600,1)
         print(neck[0].position)
-        head[0].goto(servo_min,1)
+        head[0].goto(servo_min+50,1)
         print(head[0].position)
         time.sleep(0.1)
         sw=0
@@ -59,7 +59,7 @@ def motion(sw):
     if sw==2:
         neck[0].goto(200,1)
         print(neck[0].position)
-        head[0].goto(servo_min,1)
+        head[0].goto(servo_min+50,1)
         print(head[0].position)
         time.sleep(0.1)
         sw=0
@@ -75,23 +75,18 @@ def motion(sw):
 
     #いやいや
     if sw==4:
-        for j in range(5):
-            r=int(random.uniform(80,100))
-            for i in range(r):
-                neck[0].move(-1)
-                i+=1
-            time.sleep(random.uniform(0.05,0.1))
-            for i in range(r):
-                neck[0].move(1)
-                i+=1
-            time.sleep(random.uniform(0.05,0.1))
-            j+=1
+        neck[0].goto(neck[0].nowp-50,1)
+        neck[0].goto(neck[0].nowp+50,1)
+        neck[0].goto(neck[0].nowp-50,1)
+        neck[0].goto(neck[0].nowp+50,1)
+        time.sleep(0.1)
+        sw=0
 
 def main():
     motion(3)
     motion(2)
     motion(1)
-    motion(0)
+    motion(4)
 
 if __name__ == '__main__':
     main()
