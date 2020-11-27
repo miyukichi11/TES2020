@@ -218,8 +218,8 @@ touch_sw_head=0
 def switch_callback_back(gpio_pin):
     print('touch! 背中')
     print('output')
-    mp3 = "sound/calm/1.mp3" 
-    subprocess.call("mpg321 sound/calm/1.mp3", shell=True)
+    #mp3 = "sound/calm/1.mp3" 
+    #subprocess.call("mpg321 sound/calm/1.mp3", shell=True)
     time.sleep(1)
     
 
@@ -231,7 +231,7 @@ def switch_callback_head(gpio_pin):
     print('touch! 頭')
     touch_sw_head=1
 
-def touch():
+def touch(c_touch):
     #GPIO番号指定の準備
     GPIO.setmode(GPIO.BCM)
 
@@ -263,13 +263,15 @@ def touch():
 
     GPIO.add_event_detect(touch_neck, GPIO.RISING,bouncetime=100)
     GPIO.add_event_callback(touch_neck, switch_callback_neck) 
-    
+   
+
     GPIO.add_event_detect(touch_head, GPIO.RISING,bouncetime=100)
     GPIO.add_event_callback(touch_head, switch_callback_head) 
 
     try:
         while True:
-            time.sleep(1)
+            if GPIO.input(touch_neck):
+                c_touch.value=2
 
 
     except KeyboardInterrupt:
@@ -279,14 +281,15 @@ def touch():
 #########################
 # アウトプット
 #########################
-def output():
+def output(c_touch):
 
-    if touch_sw_back == 1:
-        print('output')
-        mp3 = "calm/1.mp3" 
-        RunAudio(mp3)
-        time.sleep(1)
-        touch_sw_back=0
+    while True:
+        if c_touch.value == 2:
+            print('output')
+            mp3 = "sound/calm/1.mp3" 
+            subprocess.call("mpg321 sound/calm/1.mp3", shell=True)
+            time.sleep(1)
+            c_touch.value=0
 
 
 #########################
@@ -298,41 +301,44 @@ def main():
     mp3 = "sound/res.mp3"
     RunAudio(mp3)
     
-    while True:
+    c_touch=Value('i',0)
+    #while True:
         #ju = Julius()
         #print ("thread_0")
         #ju_recog = ju.run()
         #print ("thread_01")
         
-        thread_1 = threading.Thread(target=cv)
-        #thread_1 = Process(target=cv)
-        print ("thread_1")
-        thread_1.start()
-        print ("thread_1 start")
-        
-        thread_2 = threading.Thread(target=RecogAudio, args=([em_wav, 11025]))
-        #thread_2 = Process(target=RecogAudio, args=([em_wav, 11025]))
-        print ("thread_2")
-        thread_2.start()
-        print ("thread_2 start")
-        
-        thread_3 = threading.Thread(target=touch)
-        #thread_3 = Process(target=touch)
-        print ("thread_3")
-        thread_3.start()
-        print ("thread_3 start")
-        
-        thread_4 = threading.Thread(target=output)
-        #thread_4 = Process(target=output)
-        print ("thread_4")
-        thread_4.start()
 
-        thread_1.join()
-        thread_2.join()
-        thread_3.join()
-        thread_4.join()
+    #thread_1 = threading.Thread(target=cv)
+    thread_1 = Process(target=cv)
+    #print ("thread_1")
+    #thread_1.start()
+    #print ("thread_1 start")
+        
+    #thread_2 = threading.Thread(target=RecogAudio, args=([em_wav, 11025]))
+    thread_2 = Process(target=RecogAudio, args=([em_wav, 11025]))
+    print ("thread_2")
+    thread_2.start()
+    print ("thread_2 start")
+        
+    #thread_3 = threading.Thread(target=touch)
+    thread_3 = Process(target=touch, args=([c_touch]))
+    print ("thread_3")
+    thread_3.start()
+    print ("thread_3 start")
+        
+    #thread_4 = threading.Thread(target=output)
+    thread_4 = Process(target=output, args=([c_touch]))
+    print ("thread_4")
+    thread_4.start()
+    print ("thread_4 start")
 
-        time.sleep(1)
+    thread_1.join()
+    thread_2.join()
+    thread_3.join()
+    thread_4.join()
+
+    time.sleep(1)
 
 if __name__ == '__main__':
     main()
