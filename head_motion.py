@@ -37,6 +37,8 @@ head[0]=servo(5)
 def motion(sw):
     neck[0].nowp=neck[0].position
     head[0].nowp=head[0].position
+    print(neck[0].nowp)
+    print(head[0].nowp)
 
     if sw==0:
         neck[0].goto(servo_centor,1)
@@ -82,11 +84,15 @@ def motion(sw):
         time.sleep(0.1)
         sw=0
 
-def main():
-    motion(3)
-    motion(2)
+def main_head():
+    time.sleep(1)
+    motion(0)
+    time.sleep(1)
     motion(1)
+    time.sleep(1)
     motion(4)
+    time.sleep(1)
+    motion(3)
 
 if __name__ == '__main__':
-    main()
+    main_head()

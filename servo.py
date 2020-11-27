@@ -68,9 +68,11 @@ class servo:
         self.nowp=self.position
         while count < abs(self.nowp-position):
             if self.nowp < position:
-                self.position=+time
-                pwm.set_pwm(self.pin,0,self.position)
-            if self.nowp > position:
-                self.position=+time
-                pwm.set_pwm(self.pin,0,self.position)
+                self.move(1)
+                #self.position=+time
+                #pwm.set_pwm(self.pin,0,self.position)
+            if self.nowp >= position:
+                self.move(-1)
+                #self.position=+time
+                #pwm.set_pwm(self.pin,0,self.position)
             count+=1
