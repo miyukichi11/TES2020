@@ -252,6 +252,30 @@ def detect_objects(interpreter, image, threshold, c_camera, array):
         print (c_camera.value)
         array[2] = -1
         print (array)
+      elif classes[i]==9:
+        c_camera.value = c_camera.value - 1
+        print ("sign")
+        print (c_camera.value)
+        array[0] = -50
+        print (array)
+      elif classes[i]==58:
+        c_camera.value = c_camera.value - 1
+        print ("sign")
+        print (c_camera.value)
+        array[1] = -50
+        print (array)
+      elif classes[i]==59:
+        c_camera.value = c_camera.value - 1
+        print ("sign")
+        print (c_camera.value)
+        array[1] = -50
+        print (array)
+      elif classes[i]==56:
+        c_camera.value = c_camera.value - 1
+        print ("sign")
+        print (c_camera.value)
+        array[1] = -50
+        print (array)
       results.append(result)
   return results
 
@@ -546,6 +570,23 @@ def output(c_touch,c_wav,c_camera, array):
                 c_camera.value = 0
             else:
                 c_wav.value = "sound/joy/1.mp3" 
+                RunAudio(c_wav.value)
+                c_camera.value = 0
+        if c_camera.value <= -20:
+            count = 0
+            print (array[:])
+            #allc = array[0]+array[1]+array[2]
+            #print ("allc")
+            if array[0] == -50:
+                c_wav.value = "sound/anger/1.mp3" 
+                RunAudio(c_wav.value)
+                c_camera.value = 0
+            elif array[1] == -50:
+                c_wav.value = "sound/sorrow/2.mp3" 
+                RunAudio(c_wav.value)
+                c_camera.value = 0
+            else:
+                c_wav.value = "sound/sorrow/2.mp3" 
                 RunAudio(c_wav.value)
                 c_camera.value = 0
           
