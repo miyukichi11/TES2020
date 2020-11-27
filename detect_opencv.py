@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # python3
 #
 # Copyright 2019 The TensorFlow Authors. All Rights Reserved.
@@ -96,13 +97,19 @@ def detect_objects(interpreter, image, threshold):
   return results
 
 def cv():
-  global conf_flag
+#  global conf_flag
   parser = argparse.ArgumentParser(
       formatter_class=argparse.ArgumentDefaultsHelpFormatter)
   parser.add_argument(
-      '--model', help='File path of .tflite file.', required=True)
+      '--model',
+      help='File path of .tflite file.', required=False,
+      type=str,
+      default="object_detection/models/ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite")
   parser.add_argument(
-      '--labels', help='File path of labels file.', required=True)
+      '--labels',
+      help='File path of labels file.', required=False,
+      type=str,
+      default="object_detection/models/coco_labels.txt")
   parser.add_argument(
       '--threshold',
       help='Score threshold for detected objects.',
@@ -127,9 +134,9 @@ def cv():
   cap = cv2.VideoCapture(0)
 
   while True:
-    if conf_flag == 1:
-        print ("cv sleep")
-        time.sleep(3)
+#    if conf_flag == 1:
+#        print ("cv sleep")
+#        time.sleep(3)
         
     ret, frame = cap.read()
     (CAMERA_WIDTH, CAMERA_HEIGHT) = (frame.shape[1], frame.shape[0])
@@ -181,9 +188,15 @@ def main():
   parser = argparse.ArgumentParser(
       formatter_class=argparse.ArgumentDefaultsHelpFormatter)
   parser.add_argument(
-      '--model', help='File path of .tflite file.', required=True)
+      '--model', help='File path of .tflite file.',
+      required=False,
+      type=str, 
+      default="object_detection/models/ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite")
   parser.add_argument(
-      '--labels', help='File path of labels file.', required=True)
+      '--labels', help='File path of labels file.',
+      required=False,
+      type=str, 
+      default="object_detection/models/coco_labels.txt")
   parser.add_argument(
       '--threshold',
       help='Score threshold for detected objects.',
