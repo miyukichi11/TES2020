@@ -43,7 +43,7 @@ adc = ADS1x15(ic=ADS1115)
 # 電流センサクラス
 #======================================
 
-class currentsensor:
+class CurrentSensor:
 
     def __init__(self, pin):
         self.pin=pin

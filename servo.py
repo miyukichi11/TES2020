@@ -7,8 +7,6 @@ import signal
 import sys
 import Adafruit_PCA9685               #Import the PCA9685 module
 from Adafruit_ADS1x15 import ADS1x15  #Import the ADS1x15 module
-from current_sensor import currentsensor
-from thermister import thermister
 
 # Uncomment to enable debug output.
 #import logging
