@@ -287,8 +287,9 @@ def output(c_touch,c_wav):
         if c_touch.value == 1:
             print('output')
             c_wav.value = "sound/calm/1.mp3" 
-            hm.motion(2)
+            #RunAudio(c_wav.value)
             subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
+            hm.motion(2)
             c_touch.value=0
             time.sleep(1)
         if c_touch.value == 2:
