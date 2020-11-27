@@ -17,7 +17,8 @@ import matplotlib.pyplot as plt
 import scipy.signal as sg
 import soundfile as sf
 import threading
-from multiprocessing import Value, Array, Process
+from multiprocessing import Value, Array, Process, Manager
+from ctypes import c_char_p
 import subprocess
 import socket_server
 import socket
@@ -217,19 +218,12 @@ touch_sw_head=0
 
 def switch_callback_back(gpio_pin):
     print('touch! 背中')
-    print('output')
-    #mp3 = "sound/calm/1.mp3" 
-    #subprocess.call("mpg321 sound/calm/1.mp3", shell=True)
-    time.sleep(1)
     
-
 def switch_callback_neck(gpio_pin):
     print('touch! 首')
-    touch_sw_neck=1
 
 def switch_callback_head(gpio_pin):
     print('touch! 頭')
-    touch_sw_head=1
 
 def touch(c_touch):
     #GPIO番号指定の準備
@@ -270,8 +264,14 @@ def touch(c_touch):
 
     try:
         while True:
-            if GPIO.input(touch_neck):
+            if GPIO.input(touch_back):
+                c_touch.value=1
+            elif GPIO.input(touch_neck):
                 c_touch.value=2
+            elif GPIO.input(touch_head):
+                c_touch.value=3
+            else:
+                c_touch.value=0
 
 
     except KeyboardInterrupt:
@@ -281,15 +281,28 @@ def touch(c_touch):
 #########################
 # アウトプット
 #########################
-def output(c_touch):
+def output(c_touch,c_wav):
 
     while True:
+        if c_touch.value == 1:
+            print('output')
+            c_wav.value = "sound/calm/1.mp3" 
+            subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
+            c_touch.value=0
+            time.sleep(1)
         if c_touch.value == 2:
             print('output')
-            mp3 = "sound/calm/1.mp3" 
-            subprocess.call("mpg321 sound/calm/1.mp3", shell=True)
-            time.sleep(1)
+            c_wav.value = "sound/calm/2.mp3" 
+            subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
             c_touch.value=0
+            time.sleep(1)
+        if c_touch.value == 3:
+            print('output')
+            c_wav.value = "sound/calm/3.mp3" 
+            subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
+            c_touch.value=0
+            time.sleep(1)
+          
 
 
 #########################
@@ -301,7 +314,14 @@ def main():
     mp3 = "sound/res.mp3"
     RunAudio(mp3)
     
-    c_touch=Value('i',0)
+    # 共有メモリ生成
+    mng = Manager()
+    c_touch = Value('i',0)
+    c_mic = Value('i',0)
+    c_wav = mng.Value(c_char_p,"sound/res.mp3")
+    c_camera = Value('i',0)
+    c_boost = Value('i',0)
+
     #while True:
         #ju = Julius()
         #print ("thread_0")
@@ -311,9 +331,9 @@ def main():
 
     #thread_1 = threading.Thread(target=cv)
     thread_1 = Process(target=cv)
-    #print ("thread_1")
-    #thread_1.start()
-    #print ("thread_1 start")
+    print ("thread_1")
+    thread_1.start()
+    print ("thread_1 start")
         
     #thread_2 = threading.Thread(target=RecogAudio, args=([em_wav, 11025]))
     thread_2 = Process(target=RecogAudio, args=([em_wav, 11025]))
@@ -328,7 +348,7 @@ def main():
     print ("thread_3 start")
         
     #thread_4 = threading.Thread(target=output)
-    thread_4 = Process(target=output, args=([c_touch]))
+    thread_4 = Process(target=output, args=([c_touch,c_wav]))
     print ("thread_4")
     thread_4.start()
     print ("thread_4 start")
