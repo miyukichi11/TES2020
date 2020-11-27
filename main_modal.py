@@ -28,8 +28,8 @@ import socket_server
 import socket
 import myio
 #----一時コメントアウト----
-#import head_motion as hm
-#import RPi.GPIO as GPIO
+import head_motion as hm
+import RPi.GPIO as GPIO
 #import touch_sensor
 #----一時コメントアウト----
 import detect_opencv
