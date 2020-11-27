@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import os
 import sys
 import codecs
@@ -23,26 +27,25 @@ import subprocess
 import socket_server
 import socket
 import myio
-#from queue import Queue
-import head_motion as hm
-import RPi.GPIO as GPIO
-import touch_sensor
+#----一時コメントアウト----
+#import head_motion as hm
+#import RPi.GPIO as GPIO
+#import touch_sensor
+#----一時コメントアウト----
 import detect_opencv
 
 from tflite_runtime.interpreter import Interpreter
 import tflite_runtime.interpreter as tflite
 
-#########################
-    #MUGYUの感情レベル
-#########################
-#global MUGYU_level
+import argparse
+import io
+import cv2
 
-#########################
-    #flag
-#########################
-#global conf_flag
-#conf_flag = 0
+from tflite_runtime.interpreter import Interpreter
+import tflite_runtime.interpreter as tflite
+import main_modal as modal
 
+EDGETPU_SHARED_LIB = 'libedgetpu.so.1'
 
 HOST = '127.0.0.1'   # IPアドレス
 PORT = 10500         # Juliusとの通信用ポート番号
@@ -54,13 +57,6 @@ DATESIZE = 1024     # 受信データバイト数
     #wavファイル録音
 #########################
 def RecogAudio(wav, RATE):
-    
-#########################
-    #flag
-#########################
-#    global conf_flag
-#    conf_flag = 0
-
     print ("RecogAudio")
     
 #---マイクのインデックス確認後⇒コメントアウト----------------------
@@ -98,16 +94,12 @@ def RecogAudio(wav, RATE):
             frames_per_buffer=CHUNK)
         
         while True:
-    #        if conf_flag == 1:
-    #            print ("audio sleep")
-    #            time.sleep(10)
             data = stream.read(CHUNK)
             x = np.frombuffer(data, dtype="int16") / 32768.0
             print ("話しかけていいよ")
     
             if (x.max() > threshold):
                 
-    #            conf_flag = 1
                 print ("recording...")
                 print ("録音開始...")
                 frames = []
@@ -149,18 +141,18 @@ def RecogAudio(wav, RATE):
         mp3 = "%s/%d.mp3" % (mp3f_str, c)
         RunAudio(mp3)
         time.sleep(1)
-    #    conf_flag = 0
-
+        
 
 #########################
     #wavファイル再生
 #########################
 def RunAudio(mp3):
     print (mp3)
-    pygame.mixer.init(frequency = 44100)
-    pygame.mixer.music.load(mp3)
-    pygame.mixer.music.play(1)
-    time.sleep(2)
+    subprocess.Popen(['mplayer', mp3])
+    #pygame.mixer.init(frequency = 44100)
+    #pygame.mixer.music.load(mp3)
+    #pygame.mixer.music.play(1)
+    #time.sleep(2)
     #pygame.mixer.music.stop()
 
 
@@ -189,12 +181,244 @@ def send_recv(input_data):
 #########################
     #画処理
 #########################
+def load_labels(path):
+  """Loads the labels file. Supports files with or without index numbers."""
+  with open(path, 'r', encoding='utf-8') as f:
+    lines = f.readlines()
+    labels = {}
+    for row_number, content in enumerate(lines):
+      pair = re.split(r'[:\s]+', content.strip(), maxsplit=1)
+      if len(pair) == 2 and pair[0].strip().isdigit():
+        labels[int(pair[0])] = pair[1].strip()
+      else:
+        labels[row_number] = pair[0].strip()
+  return labels
+
+
+def set_input_tensor(interpreter, image):
+  """Sets the input tensor."""
+  tensor_index = interpreter.get_input_details()[0]['index']
+  input_tensor = interpreter.tensor(tensor_index)()[0]
+  input_tensor[:, :] = image
+
+
+def get_output_tensor(interpreter, index):
+  """Returns the output tensor at the given index."""
+  output_details = interpreter.get_output_details()[index]
+  tensor = np.squeeze(interpreter.get_tensor(output_details['index']))
+  return tensor
+
+
+def detect_objects(interpreter, image, threshold, c_camera, array):
+  """Returns a list of detection results, each a dictionary of object info."""
+  set_input_tensor(interpreter, image)
+  interpreter.invoke()
+
+  # Get all output details
+  boxes = get_output_tensor(interpreter, 0)
+  classes = get_output_tensor(interpreter, 1)
+  scores = get_output_tensor(interpreter, 2)
+  count = int(get_output_tensor(interpreter, 3))
+
+  results = []
+  for i in range(count):
+    if scores[i] >= threshold:
+      result = {
+          'bounding_box': boxes[i],
+          'class_id': classes[i],
+          'score': scores[i]
+      }
+      print (classes[i])
+      if classes[i]==15:
+        c_camera.value = c_camera.value + 1
+        print ("bird 1")
+        print (c_camera.value)
+        print (array)
+        array[0] = -1
+      elif classes[i]==16:
+        c_camera.value = c_camera.value + 1
+        print ("cat 1")
+        print (c_camera.value)
+        array[1] = -1
+        print (array)
+      elif classes[i]==17:
+        c_camera.value = c_camera.value + 1
+        print ("dog 1")
+        print (c_camera.value)
+        array[2] = -1
+        print (array)
+      results.append(result)
+  return results
+
 def cv():
-    #detect_opencv.pyの呼び出し
-    pytfile = "detect_opencv.py"
-    modelPATH = "object_detection/models/ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite"
-    labelsPATH = "object_detection/models/coco_labels.txt"
-    os.system("python %s --model %s --labels %s" % (pytfile, modelPATH, labelsPATH))
+  parser = argparse.ArgumentParser(
+      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+  parser.add_argument(
+      '--model',
+      help='File path of .tflite file.', required=False,
+      type=str,
+      default="object_detection/models/ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite")
+  parser.add_argument(
+      '--labels',
+      help='File path of labels file.', required=False,
+      type=str,
+      default="object_detection/models/coco_labels.txt")
+  parser.add_argument(
+      '--threshold',
+      help='Score threshold for detected objects.',
+      required=False,
+      type=float,
+      default=0.4)
+  args = parser.parse_args()
+
+  labels = load_labels(args.labels)
+  model_file, *device = args.model.split('@')
+  try:
+    interpreter = Interpreter(model_file, experimental_delegates=[
+                                        tflite.load_delegate(EDGETPU_SHARED_LIB,
+                                        {'device': device[0]} if device else {})
+                                        ])
+  except (ValueError, OSError):
+    interpreter = Interpreter(model_file)
+  interpreter.allocate_tensors()
+  _, input_height, input_width, _ = interpreter.get_input_details()[0]['shape']
+
+
+  cap = cv2.VideoCapture(0)
+
+  while True:        
+    ret, frame = cap.read()
+    (CAMERA_WIDTH, CAMERA_HEIGHT) = (frame.shape[1], frame.shape[0])
+    image = cv2.resize(frame, 
+                       dsize=(input_width, input_height), 
+                       interpolation=cv2.INTER_NEAREST)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+    start_time = time.monotonic()
+    results = detect_objects(interpreter, image, args.threshold, c_camera, c_boost)
+
+    elapsed_ms = (time.monotonic() - start_time) * 1000
+    for obj in results:
+      ymin, xmin, ymax, xmax = obj['bounding_box']
+      xmin = int(xmin * CAMERA_WIDTH)
+      xmax = int(xmax * CAMERA_WIDTH)
+      ymin = int(ymin * CAMERA_HEIGHT)
+      ymax = int(ymax * CAMERA_HEIGHT)
+
+      cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (255, 0, 0), 2)
+      text = '{} {:.2f}'.format(labels[obj['class_id']], obj['score'])
+      (text_width, text_height), baseline = cv2.getTextSize(text,
+                                              cv2.FONT_HERSHEY_SIMPLEX,
+                                              0.5, 1)
+      cv2.rectangle(frame,
+                    (xmin, ymin),
+                    (xmin + text_width, ymin - text_height - baseline),
+                    (255, 0, 0),
+                    thickness=cv2.FILLED)
+      cv2.putText(frame, 
+                  text,
+                  (xmin, ymin - baseline), 
+                  cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+
+    cv2.putText(frame, 
+                '{:.1f}ms'.format(elapsed_ms),
+                (10, 30), 
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+ 
+    cv2.imshow('frame', frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+      break
+
+  cap.release()
+  cv2.destroyAllWindows()
+  return
+
+def object_cv(c_camera, c_boost):
+    c_camera.value = 0
+    print ("cat 0")
+    print (c_camera.value)
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument(
+        '--model', help='File path of .tflite file.',
+        required=False,
+        type=str, 
+        default="object_detection/models/ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite")
+    parser.add_argument(
+        '--labels', help='File path of labels file.',
+        required=False,
+        type=str, 
+        default="object_detection/models/coco_labels.txt")
+    parser.add_argument(
+        '--threshold',
+        help='Score threshold for detected objects.',
+        required=False,
+        type=float,
+        default=0.4)
+    args = parser.parse_args()
+
+    labels = load_labels(args.labels)
+    model_file, *device = args.model.split('@')
+    try:
+        interpreter = Interpreter(model_file, experimental_delegates=[
+                                            tflite.load_delegate(EDGETPU_SHARED_LIB,
+                                            {'device': device[0]} if device else {})
+                                            ])
+    except (ValueError, OSError):
+        interpreter = Interpreter(model_file)
+    interpreter.allocate_tensors()
+    _, input_height, input_width, _ = interpreter.get_input_details()[0]['shape']
+
+
+    cap = cv2.VideoCapture(0)
+    while True:
+        ret, frame = cap.read()
+        (CAMERA_WIDTH, CAMERA_HEIGHT) = (frame.shape[1], frame.shape[0])
+        image = cv2.resize(frame, 
+                           dsize=(input_width, input_height), 
+                           interpolation=cv2.INTER_NEAREST)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+        start_time = time.monotonic()
+        results = detect_objects(interpreter, image, args.threshold, c_camera, c_boost)
+#---------------------
+        elapsed_ms = (time.monotonic() - start_time) * 1000
+#---------------------
+        for obj in results:
+            ymin, xmin, ymax, xmax = obj['bounding_box']
+            xmin = int(xmin * CAMERA_WIDTH)
+            xmax = int(xmax * CAMERA_WIDTH)
+            ymin = int(ymin * CAMERA_HEIGHT)
+            ymax = int(ymax * CAMERA_HEIGHT)
+
+            cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (255, 0, 0), 2)
+            text = '{} {:.2f}'.format(labels[obj['class_id']], obj['score'])
+            (text_width, text_height), baseline = cv2.getTextSize(text,
+                                                    cv2.FONT_HERSHEY_SIMPLEX,
+                                                    0.5, 1)
+            cv2.rectangle(frame,
+                    (xmin, ymin),
+                    (xmin + text_width, ymin - text_height - baseline),
+                    (255, 0, 0),
+                    thickness=cv2.FILLED)
+            cv2.putText(frame, 
+                    text,
+                    (xmin, ymin - baseline), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+
+        cv2.putText(frame, 
+                    '{:.1f}ms'.format(elapsed_ms),
+                    (10, 30), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+ 
+        cv2.imshow('frame', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+    return
+
 
 #########################
 #タッチセンサ読み込み
@@ -281,29 +505,44 @@ def touch(c_touch):
 #########################
 # アウトプット
 #########################
-def output(c_touch,c_wav):
+def output(c_touch,c_wav,c_camera, array):
 
     while True:
         if c_touch.value == 1:
             print('output')
             c_wav.value = "sound/calm/1.mp3" 
-            #RunAudio(c_wav.value)
-            subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
+            #subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
+            RunAudio(c_wav.value)
             hm.motion(2)
             c_touch.value=0
             time.sleep(1)
         if c_touch.value == 2:
             print('output')
             c_wav.value = "sound/calm/2.mp3" 
-            subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
+            #subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
+            RunAudio(c_wav.value)
             c_touch.value=0
             time.sleep(1)
         if c_touch.value == 3:
             print('output')
             c_wav.value = "sound/calm/3.mp3" 
-            subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
+            #subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
+            RunAudio(c_wav.value)
             c_touch.value=0
             time.sleep(1)
+        if c_camera.value >= 20:
+            count = 0
+            print (array[:])
+            #allc = array[0]+array[1]+array[2]
+            #print ("allc")
+            if array[0] == -1 and array[1] == -1 and array[2] == -1:
+                c_wav.value = "sound/joy/2.mp3" 
+                RunAudio(c_wav.value)
+                c_camera.value = 0
+            else:
+                c_wav.value = "sound/joy/1.mp3" 
+                RunAudio(c_wav.value)
+                c_camera.value = 0
           
 
 
@@ -322,7 +561,9 @@ def main():
     c_mic = Value('i',0)
     c_wav = mng.Value(c_char_p,"sound/res.mp3")
     c_camera = Value('i',0)
-    c_boost = Value('i',0)
+    #c_boost = Value('i',0)
+    # Arrayオブジェクトの生成
+    array = Array('i', range(3))
 
     #while True:
         #ju = Julius()
@@ -332,7 +573,7 @@ def main():
         
 
     #thread_1 = threading.Thread(target=cv)
-    thread_1 = Process(target=cv)
+    thread_1 = Process(target=object_cv, args=([c_camera, array]))
     print ("thread_1")
     thread_1.start()
     print ("thread_1 start")
@@ -350,7 +591,7 @@ def main():
     print ("thread_3 start")
         
     #thread_4 = threading.Thread(target=output)
-    thread_4 = Process(target=output, args=([c_touch,c_wav]))
+    thread_4 = Process(target=output, args=([c_touch,c_wav,c_camera, array]))
     print ("thread_4")
     thread_4.start()
     print ("thread_4 start")
