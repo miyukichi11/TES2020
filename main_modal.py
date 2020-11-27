@@ -27,16 +27,16 @@ import subprocess
 import socket_server
 import socket
 import myio
-<<<<<<< HEAD
+#<<<<<<< HEAD
 #----一時コメントアウト----
-import head_motion as hm
-import RPi.GPIO as GPIO
+#import head_motion as hm
+#import RPi.GPIO as GPIO
 #import touch_sensor
 #----一時コメントアウト----
-=======
-import head_motion as hm
-import RPi.GPIO as GPIO
->>>>>>> 3abb575cd86a7a92e17182739f2811e2e77fff64
+#=======
+#import head_motion as hm
+#import RPi.GPIO as GPIO
+#>>>>>>> 3abb575cd86a7a92e17182739f2811e2e77fff64
 import detect_opencv
 
 from tflite_runtime.interpreter import Interpreter
@@ -619,7 +619,7 @@ def main():
         
 
     #thread_1 = threading.Thread(target=cv)
-    #thread_1 = Process(target=object_cv, args=([c_camera, array]))
+    thread_1 = Process(target=object_cv, args=([c_camera, array]))
     print ("thread_1")
     #thread_1.start()
     print ("thread_1 start")
@@ -642,7 +642,7 @@ def main():
     thread_4.start()
     print ("thread_4 start")
 
-    #thread_1.join()
+    thread_1.join()
     print('katahaba check done')
 
     thread_2.join()
