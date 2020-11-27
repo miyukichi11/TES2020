@@ -24,7 +24,7 @@ import socket_server
 import socket
 import myio
 #from queue import Queue
-#import leg
+import head_motion as hm
 import RPi.GPIO as GPIO
 import touch_sensor
 import detect_opencv
@@ -287,6 +287,7 @@ def output(c_touch,c_wav):
         if c_touch.value == 1:
             print('output')
             c_wav.value = "sound/calm/1.mp3" 
+            hm.motion(2)
             subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
             c_touch.value=0
             time.sleep(1)
