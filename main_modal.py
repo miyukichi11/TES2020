@@ -559,7 +559,7 @@ def output(c_touch,c_wav,c_camera, array):
     while True:
         if c_touch.value == 1:
             print('output')
-            c_wav.value = "sound/calm/1.mp3" 
+            c_wav.value = "sound/calm/6.mp3" 
             #subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
             RunAudio(c_wav.value)
             #右を向く
@@ -568,7 +568,7 @@ def output(c_touch,c_wav,c_camera, array):
             time.sleep(1)
         if c_touch.value == 2:
             print('output')
-            c_wav.value = "sound/calm/2.mp3" 
+            c_wav.value = "sound/calm/6.mp3" 
             #subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
             RunAudio(c_wav.value)
             #うなづき
@@ -577,7 +577,7 @@ def output(c_touch,c_wav,c_camera, array):
             time.sleep(1)
         if c_touch.value == 3:
             print('output')
-            c_wav.value = "sound/calm/3.mp3" 
+            c_wav.value = "sound/calm/6.mp3" 
             #subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
             RunAudio(c_wav.value)
             #左を向く
@@ -590,13 +590,13 @@ def output(c_touch,c_wav,c_camera, array):
             #allc = array[0]+array[1]+array[2]
             #print ("allc")
             if array[0] == -1 and array[1] == -1 and array[2] == -1:
-                c_wav.value = "sound/joy/2.mp3" 
+                c_wav.value = "sound/joy/5.mp3" 
                 RunAudio(c_wav.value)
                 #うなづき
                 hm.motion(3)
                 c_camera.value = 0
             else:
-                c_wav.value = "sound/joy/1.mp3" 
+                c_wav.value = "sound/joy/4.mp3" 
                 RunAudio(c_wav.value)
                 #左を向く
                 hm.motion(1)
@@ -608,7 +608,7 @@ def output(c_touch,c_wav,c_camera, array):
             #print ("allc")
             if array[0] == -50:
                 print ("いやいや危険")
-                c_wav.value = "sound/anger/1.mp3" 
+                c_wav.value = "sound/anger/6.mp3" 
                 RunAudio(c_wav.value)
                 #いやいや
                 hm.motion(4)
