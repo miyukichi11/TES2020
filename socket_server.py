@@ -161,9 +161,9 @@ def Empath(speech_file):
     url ='https://api.webempath.net/v2/analyzeWav'
     #apikey = 'ry8XIuja_lBgvdxM9Ruh0m_aCqsXiDet5DDd0R7rUkg'
     #kiyotani
-    #apikey = 'z24yhkWwpzFx2i0FLpOGCUmwPPm53zgD-wt-1dj6mnM'
+    apikey = 'z24yhkWwpzFx2i0FLpOGCUmwPPm53zgD-wt-1dj6mnM'
     #kanayama
-    apikey = 'GUYhE0abCFq4jefOVJb7h6CMFgaRSFf6NU_TZWeD7DQ'
+    #apikey = 'GUYhE0abCFq4jefOVJb7h6CMFgaRSFf6NU_TZWeD7DQ'
     #mutou
     #apikey = 'rfGYeGLdy69jyry5SQtgI8pdSlnw54EjAXjOyoqD0R4'
     payload = {'apikey': apikey}

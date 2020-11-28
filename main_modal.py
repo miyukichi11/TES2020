@@ -245,9 +245,9 @@ def detect_objects(interpreter, image, threshold, c_camera, array):
         print (array)
 #---------好きなもの-------
 #---------嫌いなもの-------
-      elif classes[i]==9:
+      elif classes[i]==58:
         c_camera.value = c_camera.value - 1
-        print ("traffic light")
+        print ("pizza")
         print (c_camera.value)
         array[0] = -50
         print (array)
@@ -277,12 +277,12 @@ def detect_objects(interpreter, image, threshold, c_camera, array):
 #        print (c_camera.value)
 #        array[1] = -50
 #        print (array)
-      elif classes[i]==58:
-        c_camera.value = c_camera.value - 1
-        print ("pizza")
-        print (c_camera.value)
-        array[1] = -50
-        print (array)
+#      elif classes[i]==58:
+#        c_camera.value = c_camera.value - 1
+#        print ("pizza")
+#        print (c_camera.value)
+#        array[1] = -50
+#        print (array)
       elif classes[i]==59:
         c_camera.value = c_camera.value - 1
         print ("donut")
@@ -460,7 +460,7 @@ def object_cv(c_camera, c_boost):
                     (10, 30), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 #-------------------------------- 
-        cv2.imshow('frame', frame)
+#        cv2.imshow('frame', frame)
 #--------------------------------        
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -564,7 +564,7 @@ def output(c_touch,c_wav,c_camera, array):
             #subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
             RunAudio(c_wav.value)
             #右を向く
-            hm.motion(2)
+            #hm.motion(2)
             c_touch.value=0
             time.sleep(1)
         if c_touch.value == 2:
@@ -573,7 +573,7 @@ def output(c_touch,c_wav,c_camera, array):
             #subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
             RunAudio(c_wav.value)
             #うなづき
-            hm.motion(3)
+            #hm.motion(3)
             c_touch.value=0
             time.sleep(1)
         if c_touch.value == 3:
@@ -582,7 +582,7 @@ def output(c_touch,c_wav,c_camera, array):
             #subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
             RunAudio(c_wav.value)
             #左を向く
-            hm.motion(1)
+            #hm.motion(1)
             c_touch.value=0
             time.sleep(1)
         if c_camera.value >= 20:
@@ -600,7 +600,7 @@ def output(c_touch,c_wav,c_camera, array):
                 c_wav.value = "sound/joy/4.mp3" 
                 RunAudio(c_wav.value)
                 #左を向く
-                hm.motion(1)
+                hm.motion(2)
                 c_camera.value = 0
         if c_camera.value <= -20:
             count = 0
@@ -620,7 +620,7 @@ def output(c_touch,c_wav,c_camera, array):
                 c_wav.value = "sound/sorrow/2.mp3" 
                 RunAudio(c_wav.value)
                 #右を向く
-                hm.motion(2)
+                #hm.motion(2)
                 c_camera.value = 0
                 array[1] = 0
             else:
@@ -628,7 +628,7 @@ def output(c_touch,c_wav,c_camera, array):
                 c_wav.value = "sound/sorrow/2.mp3" 
                 RunAudio(c_wav.value)
                 #右を向く
-                hm.motion(2)
+                #hm.motion(2)
                 c_camera.value = 0
                 array[1] = 0
           

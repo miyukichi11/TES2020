@@ -113,10 +113,11 @@ def gyro(c_axer,c_gyro,c_sw):
         if abs(c_axer[0] - mpu.init_a[0])>1.5 or abs(c_axer[1] - mpu.init_a[1])>1.5 or abs(c_axer[2] - mpu.init_a[2])>1.5:
             print('run!')
             c_sw.value=4
-            time.sleep(0.5)
         else:
             c_sw.value=3
-
+        
+        time.sleep(0.5)
+    
 
 #======================================
 # 関数
@@ -129,6 +130,7 @@ def control_output(c_sw):
         leg[i].move(kata_init)
     
     print('initialize done')
+    time.sleep(5)
     c_sw.value=2
 
     while True:
@@ -171,10 +173,10 @@ def control_output(c_sw):
             while True:
                 for i in range(4):
                     current[i].voltage()
-                    if current[i].volt > current[i].initvolt - 0.2:
+                    if current[i].volt > current[i].initvolt - 0.1:
                         leg[i].move(-1)
                     
-                    if current[i].volt < current[i].initvolt - 0.3:
+                    if current[i].volt < current[i].initvolt - 0.2:
                         leg[i].move(1)
 
                     if leg[i].position > servo_max: 
@@ -190,10 +192,10 @@ def control_output(c_sw):
             while True:
                 for i in range(4):
                     current[i].voltage()
-                    if current[i].volt > current[i].initvolt - 0.4:
+                    if current[i].volt > current[i].initvolt - 0.3:
                         leg[i].move(-1)
                     
-                    if current[i].volt < current[i].initvolt - 0.7:
+                    if current[i].volt < current[i].initvolt - 0.4:
                         leg[i].move(1)
 
                     if leg[i].position > servo_max: 
