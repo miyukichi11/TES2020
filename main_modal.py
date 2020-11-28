@@ -568,14 +568,21 @@ def output(c_touch,c_wav,c_camera, array):
             #allc = array[0]+array[1]+array[2]
             #print ("allc")
             if array[0] == -50:
+                print ("いやいや危険")
                 c_wav.value = "sound/anger/1.mp3" 
                 RunAudio(c_wav.value)
+                #いやいや
+                hm.motion(2)
                 c_camera.value = 0
             elif array[1] == -50:
+                print ("ノーマル")
                 c_wav.value = "sound/sorrow/2.mp3" 
                 RunAudio(c_wav.value)
+                #ノーマル
+                hm.motion(2)
                 c_camera.value = 0
             else:
+                print ("ノーマルelse")
                 c_wav.value = "sound/sorrow/2.mp3" 
                 RunAudio(c_wav.value)
                 c_camera.value = 0
