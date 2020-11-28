@@ -33,6 +33,19 @@ servo_max = 600  # Max pulse length out of 4096
 kata_init  = 100
 kata_max = 180
 
+#　電流センサインスタンス生成
+current=[0,0,0,0]
+current[0]=CurrentSensor(0)
+current[1]=CurrentSensor(1)
+current[2]=CurrentSensor(2)
+current[3]=CurrentSensor(3)
+
+for i in range(4):
+    current[i].voltage()
+    current[i].initvolt=current[i].volt
+    print(current[i].initvolt)
+
+
 #  足サーボインスタンス生成
 leg=[0,0,0,0]
 leg[0]=servo(0)
@@ -54,19 +67,6 @@ head[0]=servo(5)
 
 
 
-#　電流センサインスタンス生成
-current=[0,0,0,0]
-current[0]=CurrentSensor(0)
-current[1]=CurrentSensor(1)
-current[2]=CurrentSensor(2)
-current[3]=CurrentSensor(3)
-
-for i in range(4):
-    current[i].voltage()
-    current[i].initvolt=current[i].volt
-    print(current[i].initvolt)
-
-
 
 # ジャイロセンサ
 def gyro(c_axer,c_gyro,c_sw):
@@ -74,8 +74,8 @@ def gyro(c_axer,c_gyro,c_sw):
     mpu = adafruit_mpu6050.MPU6050(i2c)
 
     time.sleep(1)
-    mpu.init_a=mpu.acceleration
-    mpu.init_g=mpu.gyro
+    mpu.init_a=(0.75, -1.15, 9.15)
+    mpu.init_g=(45.5, -4.0, -1.3)
     print("Acceleration init: X:%.2f, Y: %.2f, Z: %.2f m/s^2"%(mpu.init_a))
     print("Gyro init: X:%.2f, Y: %.2f, Z: %.2f m/s^2"%(mpu.init_g))
 
@@ -114,10 +114,10 @@ def gyro(c_axer,c_gyro,c_sw):
         if abs(c_axer[0] - mpu.init_a[0])>1.5 or abs(c_axer[1] - mpu.init_a[1])>1.5 or abs(c_axer[2] - mpu.init_a[2])>1.5:
             print('run!')
             c_sw.value=4
+            time.sleep(0.1)
         else:
             c_sw.value=3
         
-        time.sleep(0.5)
     
 
 #======================================
@@ -130,10 +130,17 @@ def control_output(c_sw):
         leg[i].position=servo_centor
         leg[i].move(kata_init)
 
+    time.sleep(1)
     print('initialize done')
-
+    for i in range(4):
+        current[i].voltage()
+        current[i].initvolt=current[i].volt
+        print(current[i].initvolt)
+    time.sleep(5)
+    hm.motion(5)
+    time.sleep(1)
     c_sw.value=2
-    #hm.motion(4)
+    
 
     while True:
         # 肩幅設定用にすこし広げる関数
@@ -162,6 +169,8 @@ def control_output(c_sw):
 
                 if leg[0].katahaba and leg[1].katahaba and leg[2].katahaba and leg[3].katahaba :
                     print ('check done')
+                    hm.motion(5)
+                    time.sleep(1)
                     c_sw.value==3
                     break
 
