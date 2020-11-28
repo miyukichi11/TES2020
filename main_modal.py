@@ -251,32 +251,32 @@ def detect_objects(interpreter, image, threshold, c_camera, array):
         print (c_camera.value)
         array[0] = -50
         print (array)
-      elif classes[i]==12:
-        c_camera.value = c_camera.value - 1
-        print ("stop sign")
-        print (c_camera.value)
-        array[0] = -50
-        print (array)
+#      elif classes[i]==12:
+#        c_camera.value = c_camera.value - 1
+#        print ("stop sign")
+#        print (c_camera.value)
+#        array[0] = -50
+#        print (array)
 #---------嫌いなもの-------
 #---------普通なもの-------
-      elif classes[i]==2:
-        c_camera.value = c_camera.value - 1
-        print ("car")
-        print (c_camera.value)
-        array[1] = -50
-        print (array)
-      elif classes[i]==4:
-        c_camera.value = c_camera.value - 1
-        print ("airplane")
-        print (c_camera.value)
-        array[1] = -50
-        print (array)
-      elif classes[i]==6:
-        c_camera.value = c_camera.value - 1
-        print ("train")
-        print (c_camera.value)
-        array[1] = -50
-        print (array)
+#      elif classes[i]==2:
+#        c_camera.value = c_camera.value - 1
+#        print ("car")
+#        print (c_camera.value)
+#        array[1] = -50
+#        print (array)
+#      elif classes[i]==4:
+#        c_camera.value = c_camera.value - 1
+#        print ("airplane")
+#        print (c_camera.value)
+#        array[1] = -50
+#        print (array)
+#      elif classes[i]==6:
+#        c_camera.value = c_camera.value - 1
+#        print ("train")
+#        print (c_camera.value)
+#        array[1] = -50
+#        print (array)
       elif classes[i]==58:
         c_camera.value = c_camera.value - 1
         print ("pizza")
@@ -459,8 +459,9 @@ def object_cv(c_camera, c_boost):
                     '{:.1f}ms'.format(elapsed_ms),
                     (10, 30), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
- 
+#-------------------------------- 
         cv2.imshow('frame', frame)
+#--------------------------------        
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
