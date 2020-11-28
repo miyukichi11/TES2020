@@ -84,6 +84,13 @@ def motion(sw):
         time.sleep(0.1)
         sw=0
 
+    neck[0].goto(servo_centor,1)
+    print(neck[0].position)
+    head[0].goto(servo_centor,1)
+    print(head[0].position)
+    time.sleep(0.1)
+    sw=0
+
 def main_head():
     time.sleep(1)
     motion(0)
