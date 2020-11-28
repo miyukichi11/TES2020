@@ -224,6 +224,7 @@ def detect_objects(interpreter, image, threshold, c_camera, array):
           'score': scores[i]
       }
       print (classes[i])
+#---------好きなもの-------
       if classes[i]==15:
         c_camera.value = c_camera.value + 1
         print ("bird 1")
@@ -242,30 +243,59 @@ def detect_objects(interpreter, image, threshold, c_camera, array):
         print (c_camera.value)
         array[2] = -1
         print (array)
+#---------好きなもの-------
+#---------嫌いなもの-------
       elif classes[i]==9:
         c_camera.value = c_camera.value - 1
-        print ("sign")
+        print ("traffic light")
         print (c_camera.value)
         array[0] = -50
         print (array)
+      elif classes[i]==12:
+        c_camera.value = c_camera.value - 1
+        print ("stop sign")
+        print (c_camera.value)
+        array[0] = -50
+        print (array)
+#---------嫌いなもの-------
+#---------普通なもの-------
+      elif classes[i]==2:
+        c_camera.value = c_camera.value - 1
+        print ("car")
+        print (c_camera.value)
+        array[1] = -50
+        print (array)
+      elif classes[i]==4:
+        c_camera.value = c_camera.value - 1
+        print ("airplane")
+        print (c_camera.value)
+        array[1] = -50
+        print (array)
+      elif classes[i]==6:
+        c_camera.value = c_camera.value - 1
+        print ("train")
+        print (c_camera.value)
+        array[1] = -50
+        print (array)
       elif classes[i]==58:
         c_camera.value = c_camera.value - 1
-        print ("sign")
+        print ("pizza")
         print (c_camera.value)
         array[1] = -50
         print (array)
       elif classes[i]==59:
         c_camera.value = c_camera.value - 1
-        print ("sign")
+        print ("donut")
         print (c_camera.value)
         array[1] = -50
         print (array)
-      elif classes[i]==56:
+      elif classes[i]==60:
         c_camera.value = c_camera.value - 1
-        print ("sign")
+        print ("cake")
         print (c_camera.value)
         array[1] = -50
         print (array)
+#---------普通なもの-------
       results.append(result)
   return results
 
@@ -532,6 +562,7 @@ def output(c_touch,c_wav,c_camera, array):
             c_wav.value = "sound/calm/1.mp3" 
             #subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
             RunAudio(c_wav.value)
+            #右を向く
             hm.motion(2)
             c_touch.value=0
             time.sleep(1)
@@ -540,6 +571,8 @@ def output(c_touch,c_wav,c_camera, array):
             c_wav.value = "sound/calm/2.mp3" 
             #subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
             RunAudio(c_wav.value)
+            #うなづき
+            hm.motion(3)
             c_touch.value=0
             time.sleep(1)
         if c_touch.value == 3:
@@ -547,6 +580,8 @@ def output(c_touch,c_wav,c_camera, array):
             c_wav.value = "sound/calm/3.mp3" 
             #subprocess.call("mpg321 %s" % c_wav.value ,shell=True)
             RunAudio(c_wav.value)
+            #左を向く
+            hm.motion(1)
             c_touch.value=0
             time.sleep(1)
         if c_camera.value >= 20:
@@ -557,10 +592,14 @@ def output(c_touch,c_wav,c_camera, array):
             if array[0] == -1 and array[1] == -1 and array[2] == -1:
                 c_wav.value = "sound/joy/2.mp3" 
                 RunAudio(c_wav.value)
+                #うなづき
+                hm.motion(3)
                 c_camera.value = 0
             else:
                 c_wav.value = "sound/joy/1.mp3" 
                 RunAudio(c_wav.value)
+                #左を向く
+                hm.motion(1)
                 c_camera.value = 0
         if c_camera.value <= -20:
             count = 0
@@ -572,20 +611,25 @@ def output(c_touch,c_wav,c_camera, array):
                 c_wav.value = "sound/anger/1.mp3" 
                 RunAudio(c_wav.value)
                 #いやいや
-                hm.motion(2)
+                hm.motion(4)
                 c_camera.value = 0
+                array[0] = 0
             elif array[1] == -50:
                 print ("ノーマル")
                 c_wav.value = "sound/sorrow/2.mp3" 
                 RunAudio(c_wav.value)
-                #ノーマル
+                #右を向く
                 hm.motion(2)
                 c_camera.value = 0
+                array[1] = 0
             else:
                 print ("ノーマルelse")
                 c_wav.value = "sound/sorrow/2.mp3" 
                 RunAudio(c_wav.value)
+                #右を向く
+                hm.motion(2)
                 c_camera.value = 0
+                array[1] = 0
           
 
 
