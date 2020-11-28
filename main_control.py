@@ -19,6 +19,7 @@ from thermister import thermister
 from servo import servo
 from average_filter import AverageFilter
 import gpio
+import head_motion as hm
 
 #======================================
 # initialize
@@ -112,8 +113,8 @@ def gyro(c_axer,c_gyro,c_sw):
 
         if abs(c_axer[0] - mpu.init_a[0])>1.5 or abs(c_axer[1] - mpu.init_a[1])>1.5 or abs(c_axer[2] - mpu.init_a[2])>1.5:
             print('run!')
-            c_sw.value=4
             time.sleep(0.5)
+            c_sw.value=4
         else:
             c_sw.value=3
 
@@ -127,9 +128,13 @@ def control_output(c_sw):
     for i in range(4):
         leg[i].position=servo_centor
         leg[i].move(kata_init)
-    
+
     print('initialize done')
+
+    time.sleep(5)
+    print('start')
     c_sw.value=2
+    #hm.motion(4)
 
     while True:
         # 肩幅設定用にすこし広げる関数
@@ -168,6 +173,8 @@ def control_output(c_sw):
             for i in range(4):
                 leg[i].position=leg[i].katahaba
                 leg[i].move(0)
+
+            time.sleep(0.1)
             while True:
                 for i in range(4):
                     current[i].voltage()
@@ -187,6 +194,17 @@ def control_output(c_sw):
         # ぎゅっとする関数
         if c_sw.value==4:
             print('gyutto!')
+            count=0
+            while count<10:
+                for i in range(4):
+                    leg[i].move(1)
+                count+=1
+            count=0
+            while count<10:
+                for i in range(4):
+                    leg[i].move(-1)
+                count+=1
+                
             while True:
                 for i in range(4):
                     current[i].voltage()
