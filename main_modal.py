@@ -27,16 +27,10 @@ import subprocess
 import socket_server
 import socket
 import myio
-#<<<<<<< HEAD
 #----一時コメントアウト----
-#import head_motion as hm
-#import RPi.GPIO as GPIO
-#import touch_sensor
+import head_motion as hm
+import RPi.GPIO as GPIO
 #----一時コメントアウト----
-#=======
-#import head_motion as hm
-#import RPi.GPIO as GPIO
-#>>>>>>> 3abb575cd86a7a92e17182739f2811e2e77fff64
 import detect_opencv
 
 from tflite_runtime.interpreter import Interpreter
@@ -45,10 +39,6 @@ import tflite_runtime.interpreter as tflite
 import argparse
 import io
 import cv2
-
-from tflite_runtime.interpreter import Interpreter
-import tflite_runtime.interpreter as tflite
-import main_modal as modal
 
 EDGETPU_SHARED_LIB = 'libedgetpu.so.1'
 
@@ -73,7 +63,7 @@ def RecogAudio(wav, RATE):
 #-------------------------
         
     #マイクのインデックス番号を定義する
-    iDeviceIndex = 1
+    iDeviceIndex = 0
 
     threshold = 0.6
 
@@ -621,7 +611,7 @@ def main():
     #thread_1 = threading.Thread(target=cv)
     thread_1 = Process(target=object_cv, args=([c_camera, array]))
     print ("thread_1")
-    #thread_1.start()
+    thread_1.start()
     print ("thread_1 start")
         
     #thread_2 = threading.Thread(target=RecogAudio, args=([em_wav, 11025]))
